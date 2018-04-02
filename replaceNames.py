@@ -76,13 +76,17 @@ for acid in perAcid:
     
     #plotting
 
-    #select relevant columns
-    #TODO: error bars
-    ax=perAcid[acid][['Name', 'mean', 'ratio']].set_index('Name').plot(kind='bar', secondary_y=["ratio"], title=acid)
+    #Select errror column for error bars, rename to 'mean' to match mean value column
+    errors=perAcid[acid][['Name', 'std']].set_index('Name')
+    errors.columns=['mean']
+    #select relevant columns for plot
+    ax=perAcid[acid][['Name', 'mean', 'ratio']].set_index('Name').plot(kind='bar', secondary_y=["ratio"], title=acid, yerr=errors)
+    
     #Axis labels
     ax.set_ylabel("Concentration")
     ax.right_ax.set_ylabel("Ratio")
     #Axis limits
+    ax.set_ylim(bottom=0)
     ax.right_ax.set_ylim((0,1))
 
     #save figure without unallowed system characters
