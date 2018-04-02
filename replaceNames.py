@@ -2,18 +2,35 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-def removePathAndExtension(filename: str) -> str:
-    return filename.strip().split("\\")[-1].replace(".lcd", "")
+#CONFIG
+###############################################################################
 
-lcDataFile = "Testdaten.txt"
-nameList = "namelist.csv"
+#LC Data File
+lcDataFile = {'filename':"Testdaten.txt", 'sep':',', 'decimal':'.'}
+
+#nameList
+nameList = {'filename':"namelist.csv", 'sep':';', 'decimal':'.'}
+
+
 importantAcids = ["Methylsuccinat / Ethylmalonat","2H-3-Methylsuccinat","Crotonat","Mesaconat","Methylmalonat / Succinat","3-Hydroxybutyrat"]
 dataRows = ["Data Filename", "Sample Name", "Sample ID"]
 rowsToKeep =  dataRows + importantAcids
 
+###############################################################################
+
+#Methods
+#-----------------------------------------------------------------
+def removePathAndExtension(filename: str) -> str:
+    return filename.strip().split("\\")[-1].replace(".lcd", "")
+
+
+#-----------------------------------------------------------------
+
+#Programm
+#++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 # Read LC Data 
-# TODO: move to variables 
-pdLcData = pd.read_csv(lcDataFile, sep=",")[rowsToKeep] 
+pdLcData = pd.read_csv(lcDataFile['filename'], sep=lcDataFile['sep'], decimal=lcDataFile['decimal'])[rowsToKeep] 
 
 # Convert Concentrations to numeric values
 for column in importantAcids:
@@ -23,7 +40,7 @@ for column in importantAcids:
 pdLcData["Data Filename"] = [removePathAndExtension(filename) for filename in pdLcData["Data Filename"]]
 
 #Read nameList
-pdNameList =  pd.read_csv(nameList, sep=";", dtype={"Nr":"str"})
+pdNameList =  pd.read_csv(nameList['filename'], sep=nameList['sep'], decimal=nameList['decimal'], dtype={"Nr":"str"})
 
 # Convert numbers to clear names by merging LC Data file and nameList 
 pdNamedLcData = pd.merge(pdLcData, pdNameList, left_on="Data Filename", right_on="Nr")
