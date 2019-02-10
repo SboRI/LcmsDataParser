@@ -6,12 +6,16 @@ import matplotlib.pyplot as plt
 ###############################################################################
 
 # LC Data File
-lcDataFile = {'filename': "semikolon.csv", 'sep': ';', 'decimal': ','}
+lcDataFile = {'filename': "Laura_all_comma.txt", 'sep': ';', 'decimal': ','}
+
+# Output file for cleaned LC Data
+
+cleanDataFile = {'filename': "cleanDataFile.txt", 'sep': lcDataFile['sep'], 'decimal': '.'}
 
 # nameList
-nameList = {'filename': "namelist_all.csv", 'sep': ';', 'decimal': ','}
+nameList = {'filename': "namelist2.csv", 'sep': ';', 'decimal': ','}
 
-importantAcids = ["Crotonate","Acetate","Propionate","3- Hydroxybutyrate","Methylsuccinate","Ethylmalonate","Mesaconate","2-Hydroxy-3-Methylsuccinate","Succinate","Methylmalonate"]
+importantAcids = ["Crotonate","Acetate","Propionate","3-Hydroxybutyrate","Methylsuccinate","Ethylmalonate","Mesaconate","2-Hydroxy-3-Methylsuccinate","Succinate","Methylmalonat"]
 dataRows = ["Data Filename", "Sample Name", "Sample ID"]
 rowsToKeep = dataRows + importantAcids
 
@@ -32,19 +36,35 @@ def removePathAndExtension(filename: str) -> str:
 # Programm
 # ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
+#replace decimal comma by decimal point, remove thousand point, set '----' to ''
+with open(lcDataFile['filename'], 'r') as dataFile:
+    with open(cleanDataFile['filename'], 'w') as outfile:
+        for num, line in enumerate(dataFile):
+            lineArray = line.split(lcDataFile['sep'])
+            if num>0:
+                for num, el in enumerate(lineArray):
+                    if num>0:
+                        lineArray[num] = el.replace('.', '').replace(',', '.').replace('-----', '')
+            transformedLine = lcDataFile['sep'].join(lineArray)
+            outfile.write(transformedLine)
+
+
+
+
+
+
 # Read LC Data 
-pdLcData = pd.read_csv(lcDataFile['filename'], sep=lcDataFile['sep'], decimal=lcDataFile['decimal'], encoding="utf-8", dtype="str")[rowsToKeep]
+pdLcData = pd.read_csv(cleanDataFile['filename'], sep=cleanDataFile['sep'], decimal=cleanDataFile['decimal'], encoding="utf-8", dtype="str")[rowsToKeep]
 
 # Convert Concentrations to numeric values
-
-#TODO: punkt tausendertrennzeichen
-for column in importantAcids:
-    pdLcData[column] = [x.replace(lcDataFile['decimal'], ".") for x in pdLcData[column]]
-    pdLcData[column] = pdLcData[column].apply(pd.to_numeric, errors="coerce")
-
-
 for column in importantAcids:
     pdLcData[column] = pdLcData[column].apply(pd.to_numeric, errors="coerce")
+
+
+#Remove negative concentrations
+for column in importantAcids:
+    pdLcData[column][pdLcData[column]<0] = 0
 
 # Convert "Data Filename" column to number (corresponding Nr expected in nameList variable)
 pdLcData["Data Filename"] = [removePathAndExtension(filename) for filename in pdLcData["Data Filename"]]
@@ -75,7 +95,6 @@ for acid in perAcid:
     # Dataframe for saving sum of acids
     sumOfAcids = pd.DataFrame()
 
-    #TODO: concentration can't be negative
 
     # get the sum of all acids for this sample and timepoint
     for index, row in perAcid[acid].iterrows():
